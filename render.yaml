@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: nox-network-ai
+    runtime: node
+    buildCommand: npm install && npm run build && npx tsc --outDir dist-server --esModuleInterop --module esnext --moduleResolution node --target es2022 --skipLibCheck server.ts
+    startCommand: node dist-server/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: ADMIN_TG_ID
+        value: "7278863161"
+      - key: ADMIN_CHAT_ID
+        value: "7278863161"
+      - key: JWT_SECRET
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+      - key: APP_URL
+        value: "https://nox-network-ai.onrender.com"

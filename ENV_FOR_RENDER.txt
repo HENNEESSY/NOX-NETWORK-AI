@@ -1,0 +1,34 @@
+# ============================================
+# NOX NETWORK - Render Deployment ENV
+# ============================================
+
+# Node Environment
+NODE_ENV=production
+
+# Supabase (вставьте свои значения из Supabase Dashboard)
+SUPABASE_URL=https://qgrlwvvorxsqjkzbrzjd.supabase.co
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFncmx3dnZvcnhzcWpremJyempkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjE3NDc4MSwiZXhwIjoyMDkxNzUwNzgxfQ.uPParFtfJbqbqw4UBHzBIzXvLyWzRQoiDNgWTpcIGhE
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFncmx3dnZvcnhzcWpremJyempkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjE3NDc4MSwiZXhwIjoyMDkxNzUwNzgxfQ.uPParFtfJbqbqw4UBHzBIzXvLyWzRQoiDNgWTpcIGhE
+
+# Telegram Bot
+TELEGRAM_BOT_TOKEN=8764605470:AAGlHCd3UDxDVlarymLMHl_0kNOcV9SIkac
+VITE_BOT_USERNAME=NOX_NETWORK_VPN_bot
+ADMIN_TG_ID=7278863161
+ADMIN_CHAT_ID=7278863161
+
+# Security Secrets (сгенерированы автоматически)
+JWT_SECRET=a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef12345678
+CRON_SECRET=1234567890abcdef1234567890abcdef
+
+# AI Services (опционально)
+OPENROUTER_KEY=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
+FAL_KEY=5c40621e-5841-472e-90d1-d0d0a2234516:ae980aa6b1c6eeb42ee7fea1b6a5303d
+FAL_WEBHOOK_SECRET=299d60d71778f4388071f8072719a55ef764ad3226b2c394a474078a435cbf7c
+
+# App URL (обновите после деплоя)
+APP_URL=https://nox-network-ai.onrender.com
+
+# VPN Marzban (отключено для теста)
+MARZBAN_URL=https://panel.yourdomain.com
+MARZBAN_USERNAME=admin
+MARZBAN_PASSWORD=admin
