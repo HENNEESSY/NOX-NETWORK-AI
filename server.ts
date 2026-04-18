@@ -177,9 +177,33 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
+    console.log('[Server] Production mode, serving static files from:', distPath);
+    console.log('[Server] NODE_ENV:', ENV.NODE_ENV);
+    
+    // Check if dist folder exists
+    try {
+      const fs = await import('fs');
+      if (!fs.existsSync(distPath)) {
+        console.error('[Server] ERROR: dist folder not found at', distPath);
+      } else {
+        console.log('[Server] dist folder found, contents:', fs.readdirSync(distPath).slice(0, 10));
+      }
+    } catch (e) {
+      console.error('[Server] Error checking dist folder:', e);
+    }
+    
+    app.use(express.static(distPath, { 
+      maxAge: '1y',
+      immutable: true 
+    }));
+    
     app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      res.sendFile(path.join(distPath, 'index.html'), (err) => {
+        if (err) {
+          console.error('[Server] Error sending index.html:', err);
+          res.status(500).send('Server Error');
+        }
+      });
     });
   }
 
