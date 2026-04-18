@@ -1,0 +1,36 @@
+name: nox-network-ai
+region: fra
+image:
+  dockerfile: Dockerfile
+ports:
+  - port: 8080
+    protocol: http
+    routes:
+      - path: /
+env:
+  - name: NODE_ENV
+    value: production
+  - name: PORT
+    value: 8080
+  - name: SUPABASE_URL
+    value: ""
+  - name: SUPABASE_SERVICE_ROLE_KEY
+    value: ""
+  - name: TELEGRAM_BOT_TOKEN
+    value: ""
+  - name: ADMIN_TG_ID
+    value: "7278863161"
+  - name: JWT_SECRET
+    value: ""
+  - name: CRON_SECRET
+    value: ""
+  - name: ALLOWED_ORIGINS
+    value: "*"
+  - name: OPENROUTER_KEY
+    value: ""
+  - name: FAL_KEY
+    value: ""
+  - name: VITE_BOT_USERNAME
+    value: "NOX_NETWORK_VPN_bot"
+  - name: VITE_ADMIN_TG_ID
+    value: "7278863161"

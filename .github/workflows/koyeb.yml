@@ -1,0 +1,25 @@
+name: Deploy to Koyeb
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Koyeb CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
+          echo "$HOME/.koyeb/bin" >> $GITHUB_PATH
+      
+      - name: Deploy to Koyeb
+        run: |
+          koyeb login --token "${{ secrets.KOYEB_TOKEN }}"
+          koyeb service update nox-network-ai/nox-network-ai --docker docker.io/kuzev/nox-network-ai:latest || \
+          koyeb app create --name nox-network-ai --file koyeb.yaml
+        env:
+          KOYEB_TOKEN: ${{ secrets.KOYEB_TOKEN }}
