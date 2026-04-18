@@ -20,10 +20,12 @@ export const login = (req: AuthRequest, res: Response) => {
   }
 
   if (!initData || initData === 'mock') {
-    // Fallback: allow admin user for testing without Telegram
-    const testUserId = ENV.ADMIN_TG_ID || 7278863161;
-    console.log('[AUTH] Using fallback auth for user:', testUserId);
-    const token = jwt.sign({ tg_id: testUserId }, ENV.JWT_SECRET, { expiresIn: '24h' });
+    // Fallback: use admin ID from env or reject
+    if (!ENV.ADMIN_TG_ID || ENV.ADMIN_TG_ID === 123456789) {
+      return res.status(401).json({ error: 'Требуется авторизация через Telegram' });
+    }
+    console.log('[AUTH] Using fallback auth for admin:', ENV.ADMIN_TG_ID);
+    const token = jwt.sign({ tg_id: ENV.ADMIN_TG_ID }, ENV.JWT_SECRET, { expiresIn: '24h' });
     return res.json({ token, fallback: true });
   }
 

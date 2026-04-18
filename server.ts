@@ -192,12 +192,29 @@ async function startServer() {
       console.error('[Server] Error checking dist folder:', e);
     }
     
+    // Serve static files with proper fallthrough
     app.use(express.static(distPath, { 
       maxAge: '1y',
-      immutable: true 
+      immutable: true,
+      fallthrough: true
     }));
     
-    app.get('*', (req, res) => {
+    // SPA fallback - only for non-file requests
+    app.get('*', (req, res, next) => {
+      // Skip API routes
+      if (req.path.startsWith('/api/')) {
+        return next();
+      }
+      
+      const filePath = path.join(distPath, req.path);
+      const fs = require('fs');
+      
+      // If file exists, let express.static handle it
+      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+        return next();
+      }
+      
+      // Otherwise serve index.html for SPA
       res.sendFile(path.join(distPath, 'index.html'), (err) => {
         if (err) {
           console.error('[Server] Error sending index.html:', err);

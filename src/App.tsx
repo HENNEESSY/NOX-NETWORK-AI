@@ -34,9 +34,12 @@ function App() {
 
   // Fallback: Check admin by Telegram ID from multiple sources
   const isAdminByTgId = () => {
+    // Get admin ID from env (Vite uses import.meta.env)
+    const ADMIN_TG_ID = Number(import.meta.env.VITE_ADMIN_TG_ID) || 7278863161;
+    
     // Try Telegram WebApp
     const tg = window.Telegram?.WebApp;
-    if (tg?.initDataUnsafe?.user?.id === 7278863161) {
+    if (tg?.initDataUnsafe?.user?.id === ADMIN_TG_ID) {
       return true;
     }
     
@@ -46,7 +49,7 @@ function App() {
     if (tgData) {
       try {
         const decoded = decodeURIComponent(tgData);
-        if (decoded.includes('7278863161')) {
+        if (decoded.includes(String(ADMIN_TG_ID))) {
           return true;
         }
       } catch {}
@@ -54,7 +57,7 @@ function App() {
     
     // Check hash fragment
     const hash = window.location.hash;
-    if (hash.includes('7278863161') || hash.includes('user%3D')) {
+    if (hash.includes(String(ADMIN_TG_ID)) || hash.includes('user%3D')) {
       return true;
     }
     
