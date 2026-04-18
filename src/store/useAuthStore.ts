@@ -48,7 +48,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         localStorage.removeItem('nox_token');
       }
       
-      const tgInitData = window.Telegram?.WebApp?.initData || 'mock';
+      // Try to get initData from Telegram WebApp or URL hash
+      let tgInitData = window.Telegram?.WebApp?.initData;
+      
+      if (!tgInitData) {
+        // Fallback: extract from URL hash (tgWebAppData)
+        const hash = window.location.hash;
+        if (hash.includes('tgWebAppData=')) {
+          tgInitData = hash.substring(1); // Remove #
+          console.log('[Auth] Extracted initData from URL hash');
+        }
+      }
+      
+      if (!tgInitData) {
+        tgInitData = 'mock';
+        console.log('[Auth] Using mock initData');
+      }
 
       const fetchProfile = async () => {
         const userData = await apiFetch('/user');
