@@ -8,12 +8,13 @@ SUPABASE_URL="https://your-project-id.supabase.co"
 SUPABASE_KEY="your-supabase-service-role-key"
 ```
 
-### 2. Telegram (УЖЕ ЗАПОЛНЕНО)
+### 2. Telegram
 ```env
-TELEGRAM_BOT_TOKEN="8764605470:AAGlHCd3UDxDVlarymLMHl_0kNOcV9SIkac"
-VITE_BOT_USERNAME="NOX_NETWORK_VPN_bot"
-ADMIN_CHAT_ID="7278863161"
-ADMIN_TG_ID="7278863161"
+TELEGRAM_BOT_TOKEN="your-telegram-bot-token"
+VITE_BOT_USERNAME="your_bot_username"
+ADMIN_CHAT_ID="your-admin-chat-id"
+ADMIN_TG_ID="your-admin-telegram-id"
+VITE_ADMIN_TG_ID="your-admin-telegram-id"
 ```
 
 ### 3. Безопасность (СГЕНЕРИРУЙТЕ!)

@@ -14,10 +14,10 @@ node -e "console.log('CRON_SECRET=' + require('crypto').randomBytes(16).toString
 SUPABASE_URL="https://xxxxxx.supabase.co"
 SUPABASE_KEY="eyJ..."  # service_role key
 
-# Telegram (уже есть)
-TELEGRAM_BOT_TOKEN="8764605470:AAGlHCd3UDxDVlarymLMHl_0kNOcV9SIkac"
-ADMIN_CHAT_ID="7278863161"
-ADMIN_TG_ID="7278863161"
+# Telegram
+TELEGRAM_BOT_TOKEN="your-telegram-bot-token"
+ADMIN_CHAT_ID="your-admin-chat-id"
+ADMIN_TG_ID="your-admin-telegram-id"
 COPYWRITER_BOT_TOKEN="..."  # Для админ-бота
 
 # Сгенерированные секреты
@@ -47,7 +47,7 @@ FAL_WEBHOOK_SECRET="..."
 В SQL Editor выполните:
 ```sql
 INSERT INTO users (tg_id, role, balance_days, nxc_balance) 
-VALUES (7278863161, 'admin', 365, 10000)
+VALUES (YOUR_ADMIN_TG_ID, 'admin', 365, 10000)
 ON CONFLICT (tg_id) DO UPDATE SET role = 'admin';
 ```
 
@@ -70,7 +70,7 @@ npm start
 
 ### Webhook для основного бота:
 ```
-POST https://api.telegram.org/bot8764605470:AAGlHCd3UDxDVlarymLMHl_0kNOcV9SIkac/setWebhook
+POST https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook
 {
   "url": "https://your-domain.com/api/webhook/telegram-editor"
 }
