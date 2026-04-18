@@ -117,6 +117,60 @@ const Section: FC<SectionProps> = ({ children, className = '' }) => (
   </motion.div>
 );
 
+// Cache helper
+const CACHE_KEY = 'nox_admin_cache';
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+const getCachedData = () => {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (!cached) return null;
+    const { data, timestamp } = JSON.parse(cached);
+    if (Date.now() - timestamp > CACHE_TTL) {
+      localStorage.removeItem(CACHE_KEY);
+      return null;
+    }
+    return data;
+  } catch {
+    return null;
+  }
+};
+
+const setCachedData = (data: any) => {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+  } catch {}
+};
+
+// Skeleton Loader
+const SkeletonCard: FC = () => (
+  <div className="bg-gradient-to-br from-[#121212] to-[#0a0a0a] rounded-2xl border border-white/5 p-4 animate-pulse">
+    <div className="flex items-center justify-between mb-3">
+      <div className="w-10 h-10 rounded-xl bg-white/10" />
+      <div className="w-12 h-4 rounded bg-white/10" />
+    </div>
+    <div className="w-24 h-8 rounded bg-white/10 mb-2" />
+    <div className="w-20 h-3 rounded bg-white/5" />
+  </div>
+);
+
+const SkeletonSection: FC = () => (
+  <div className="bg-gradient-to-br from-[#121212] to-[#0a0a0a] rounded-2xl border border-white/5 p-4 animate-pulse">
+    <div className="w-32 h-5 rounded bg-white/10 mb-4" />
+    <div className="space-y-3">
+      {[1,2,3].map(i => (
+        <div key={i} className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-white/10" />
+          <div className="flex-1">
+            <div className="w-24 h-4 rounded bg-white/10 mb-1" />
+            <div className="w-32 h-3 rounded bg-white/5" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 // Main Component
 const AdminTab: FC = () => {
   const { token, user } = useAuthStore();
@@ -124,6 +178,7 @@ const AdminTab: FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<'dashboard' | 'users' | 'broadcast' | 'analytics'>('dashboard');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasCachedData, setHasCachedData] = useState(false);
   
   // Fallback: Check admin by Telegram ID from multiple sources
   const isAdminByTgId = () => {
@@ -189,12 +244,15 @@ const AdminTab: FC = () => {
     totalUsers: 0, conversionRate: 23.4
   });
 
-  // Fetch Data
-  const fetchAdminData = useCallback(async () => {
-    setIsRefreshing(true);
+  // Fetch Data with caching
+  const fetchAdminData = useCallback(async (showLoading = true) => {
+    if (showLoading) setIsRefreshing(true);
+    
     try {
-      const paymentsRes = await apiFetch('/admin/payments').catch(() => ({ status: 'error', data: [] }));
-      const statsRes = await apiFetch('/admin/stats').catch(() => null);
+      const [paymentsRes, statsRes] = await Promise.all([
+        apiFetch('/admin/payments').catch(() => ({ status: 'error', data: [] })),
+        apiFetch('/admin/stats').catch(() => null)
+      ]);
 
       if (paymentsRes.status === 'success') {
         const paymentsList = paymentsRes.data as Payment[];
@@ -204,14 +262,29 @@ const AdminTab: FC = () => {
         const successPayments = paymentsList.filter(p => p.status === 'success');
         const activeUserCount = new Set(successPayments.map(p => p.tg_id)).size;
         
-        setStats(prev => ({
-          ...prev,
+        const newStats = {
           totalRevenue: revenue,
           activeUsers: statsRes?.activeUsers || activeUserCount,
           totalNxc: statsRes?.totalNxc || 0,
           newUsers: statsRes?.newUsers || 0,
           totalUsers: statsRes?.totalUsers || activeUserCount,
-        }));
+          conversionRate: statsRes?.conversionRate || 23.4,
+          revenueChange: 12.5,
+          usersChange: 8.3,
+          nxcChange: 15.2,
+          newUsersChange: -5.1,
+        };
+        
+        setStats(newStats);
+        
+        // Cache the data
+        setCachedData({
+          payments: paymentsList,
+          stats: newStats,
+          chartData,
+          pieData,
+          activityLog
+        });
 
         // Chart Data
         const last7Days = Array.from({ length: 7 }, (_, i) => {
@@ -264,11 +337,36 @@ const AdminTab: FC = () => {
     }
   }, []);
 
+  // Load cached data immediately, then fetch fresh in background
   useEffect(() => {
-    if (token) fetchAdminData();
-    const interval = setInterval(fetchAdminData, 30000);
+    if (!token) return;
+    
+    // Try to load cached data first for instant display
+    const cached = getCachedData();
+    if (cached) {
+      setPayments(cached.payments || []);
+      setStats(cached.stats || stats);
+      setChartData(cached.chartData || []);
+      setPieData(cached.pieData || []);
+      setActivityLog(cached.activityLog || []);
+      setHasCachedData(true);
+      setIsLoading(false); // Show cached data immediately
+    }
+    
+    // Fetch fresh data in background (no loading spinner)
+    fetchAdminData(false);
+    
+    // Auto-refresh every 60 seconds (not 30)
+    const interval = setInterval(() => fetchAdminData(false), 60000);
     return () => clearInterval(interval);
   }, [token, fetchAdminData]);
+  
+  // Mark loading complete when we have data
+  useEffect(() => {
+    if (payments.length > 0 || hasCachedData) {
+      setIsLoading(false);
+    }
+  }, [payments, hasCachedData]);
 
   // Handlers
   const handleGeneratePost = async () => {
@@ -392,16 +490,36 @@ const AdminTab: FC = () => {
     }
   };
 
-  // Loading State
-  if (isLoading) {
+  // Skeleton Loading State - shows immediately with cached data or skeletons
+  if (isLoading && !hasCachedData) {
     return (
-      <div className="flex flex-col items-center justify-center h-full space-y-4">
-        <motion.div 
-          className="w-12 h-12 border-4 border-[#0066FF] border-t-transparent rounded-full"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-        />
-        <p className="text-sm text-gray-500">Загрузка панели управления...</p>
+      <div className="h-full overflow-y-auto scrollbar-hide pb-24">
+        {/* Header Skeleton */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-14 h-14 rounded-2xl bg-white/10 animate-pulse" />
+          <div className="flex-1">
+            <div className="w-40 h-6 rounded bg-white/10 animate-pulse mb-2" />
+            <div className="w-24 h-4 rounded bg-white/5 animate-pulse" />
+          </div>
+        </div>
+        
+        {/* Tabs Skeleton */}
+        <div className="flex gap-2 mb-6">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="flex-1 h-10 rounded-xl bg-white/10 animate-pulse" />
+          ))}
+        </div>
+        
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+        
+        {/* Activity Section Skeleton */}
+        <SkeletonSection />
       </div>
     );
   }
